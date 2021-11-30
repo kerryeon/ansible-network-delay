@@ -83,7 +83,7 @@ def apply(params: dict):
         'delay' in line
         for line in subprocess.check_output([
             '/bin/bash', '-c', f'tc qdisc show dev {interface}',
-        ]).decode('utf-8').split('\n')[-1]
+        ]).decode('utf-8').split('\n')[:-1]
     )
 
     # enable delay
@@ -93,14 +93,15 @@ def apply(params: dict):
     # disable delay
     else:
         if not contains_delay:
-            return True
+            return False
         mode = 'del'
 
     # execute
-    print(
-        f'sudo tc qdisc {mode} dev {interface} root netem delay {network_delay}ms')
     os.system(
-        f'sudo tc qdisc {mode} dev {interface} root netem delay {network_delay}ms'
+        f'echo "tc qdisc {mode} dev {interface} root netem delay {network_delay}ms" > ~/output'
+    )
+    os.system(
+        f'tc qdisc {mode} dev {interface} root netem delay {network_delay}ms'
     )
 
     # Finish
